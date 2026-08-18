@@ -1,0 +1,16 @@
+screen 8: COLOR 11
+REM GRAFICO 3D (SOMBRERO)
+FOR Y=-22 TO 22 STEP 1.5
+FOR X=-22 TO 22
+D=SQR(X*X+Y*Y)
+Z=50
+IF D>0 THEN Z=Z*SIN(D)/D
+SX=INT(160+(X-Y)*3.5)
+SY=INT(100-(X+Y)*1.5-Z*2)
+ IF X=-22 THEN
+     PseT (SX,SY),11:xsx=sx:ysy=sy ':GOTO 12
+ else
+     line (xSX,ySY) - (SX,SY),14:xsx=sx:ysy=sy
+ end if
+ NEXT 
+ NEXT Y
