@@ -1,0 +1,32 @@
+'basic fusion & qbjs ligne a adapter
+SCREEN 7: CLS
+DIM X(13), Y(13), Z(13), SXx(130), SYx(13)
+FOR I = 1 TO 13: READ X(I), Y(I), Z(I): NEXT I
+DATA -25,-25,-25, 25,-25,-25, 25, 25,-25, -25, 25,-25
+DATA -25,-25, 25, 25,-25, 25, 25, 25, 25, -25, 25, 25
+DATA 0,-50, 0
+DATA -25, 25,-25, 25, 25,-25, 25, 25, 25, -25, 25, 25
+AX = 0.04: AY = 0.03: AZ = 0.02
+for repeat = 1 to 100000000000
+CX = COS(AX): SX = SIN(AX): CY = COS(AY): SY = SIN(AY): CZ = COS(AZ): SZ = SIN(AZ)
+for wait = 1 to 1000000:next wait: 'wait for basic fusion
+'_LIMIT 60 : 'wait for qbjs
+CLS
+FOR I = 1 TO 13
+Y1 = Y(I) * CX - Z(I) * SX: Z1 = Y(I) * SX + Z(I) * CX
+X2 = X(I) * CY + Z1 * SY: Z2 = -X(I) * SY + Z1 * CY
+X(I) = X2 * CZ - Y1 * SZ: Y(I) = X2 * SZ + Y1 * CZ: Z(I) = Z2
+D = 250 / (250 - Z(I))
+IF I <= 8 THEN OFX = 80 ELSE OFX = 240
+SXx(I) = OFX + X(I) * D * 1.5: SYx(I) = 100 + Y(I) * D
+NEXT I
+FOR I = 1 TO 3: LINE (SXx(I), SYx(I))-(SXx(I+1), SYx(I+1)), 10: NEXT I
+LINE (SXx(4), SYx(4))-(SXx(1), SYx(1)), 10
+FOR I = 5 TO 7: LINE (SXx(I), SYx(I))-(SXx(I+1), SYx(I+1)), 10: NEXT I
+LINE (SXx( 8 ) , SYx(8)) - (SXx(5) , SYx(5)), 10
+FOR I = 1 TO 4: LINE (SXx(I), SYx(I))-(SXx(I+4), SYx(I+4)), 10: NEXT I
+FOR I = 10 TO 12: LINE (SXx(I), SYx(I))-(SXx(I+1), SYx(I+1)), 10: NEXT I
+LINE (SXx(13), SYx(13))-(SXx(10), SYx(10)), 10
+FOR I = 10 TO 13: LINE (SXx(9), SYx(9))-(SXx(I), SYx(I)), 10: NEXT I
+FOR D = 1 TO 50: NEXT D
+next repeat
