@@ -1,0 +1,19 @@
+cls
+rad1=400
+rad2=200
+cx=gramaxx/2:cy=gramaxy/2
+pir=3.141593
+angle=0
+stp=pir/450
+while angle<4*pir
+angle=angle+stp
+if angle<2*pir then col=angle*19 else col=0
+ax=cx+rad1*cos(angle)
+ay=cy+rad1*sin(angle)
+bx=cx+rad2*cos(angle+pir*.6)
+by=cy+rad2*sin(angle+pir*.6)
+r=bx mod 255
+g=by mod 255
+b=ax mod 255
+line (ax, ay)-(bx, by),r,g,b
+wend
