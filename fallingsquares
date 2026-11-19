@@ -1,0 +1,13 @@
+'QBJS ONLY Falling squares
+CONST W = 784, H = 512, S = 16
+'SCREEN _NEWIMAGE(W, H, 32): _TITLE "Falling squares": t% = 0
+DO
+    FOR x = 0 TO W STEP S
+        y = (x XOR t) MOD H
+        r = x MOD 255: col = RGB(r, (x MOD 128) * 2, 255 - r)
+        LINE (x, y)-STEP(S, S), col, BF: LINE (x, y)-STEP(S, S), RGB(0,0,0), B
+    NEXT x
+'    _DISPLAY
+    _LIMIT 60
+    t = (t + 1) MOD 32767
+LOOP
