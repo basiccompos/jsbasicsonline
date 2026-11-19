@@ -1,0 +1,60 @@
+'QBJS BASIC FUSION ACTIVATE ,c
+screen 12
+f=0:HW=290:W=2*HW:R=HW-20':bg=rgb(0,0,0,8)
+'graphsize W,W:clg black:graphvisible true:
+'fastgraphics
+'cls
+while 1=1
+    if f&3=0 then color bg:line (0,0) - (W,0):line (0,0) - (0,W)
+    line (0,0) - (W,0),7:line (0,0) - (0,W),7
+    f=f+1
+    t=.005*f:u=t
+    while u<t+6.28
+        q=sin(u):p=cos(u)':pset width(1+2*abs(q))
+        c=255*pos(p):color rgb(255*pos(q),c,255-c):v=u
+        while v<u+6.28
+            pset(HW+R*q*cos(v),HW+R*q*sin(v))',c
+            v=v+.5-.4*cos(v-t)
+        wend 'while
+    u=u+.5+.4*sin(u-t)
+    wend 'while
+'refresh:'framerate 60
+_limit 60
+wend 'while
+
+function pos(x)
+pos=.5*(x+abs(x))
+end function
+
+'BASIC FUSION
+t=0:HW=285:W=2*HW:R=HW-30:D=R/1.41:BG=7'rgb(0,0,0,10)
+'graphsize W,W:clg black:graphvisible true:fastgraphics
+screen 12
+while 1=1
+    color BG:rect 0,0,W,W:    dt=.25*sin(t)
+    for u=t to t+6.28 step .3+dt
+        q=sin(u):p=cos(u):'penwidth(2.5-p)
+        c=127*(1+p):color c/255'+(255-c)/255' color rgb(127*(1+q),c,255-c)
+        for v=t to t+6.28 step .3-dt
+            pset (HW+R*q*cos(v),HW+D*p+D*q*sin(v)),rnd*3.5
+        next v      
+    next u
+'limit 60
+t=t+.005
+wend
+'QBJS ONLY
+t=0:HW=285:W=2*HW:R=HW-30:D=R/1.41:BG=7'rgb(0,0,0,10)
+'graphsize W,W:clg black:graphvisible true:fastgraphics
+screen 12
+while 1=1
+    color BG:rect 0,0,W,W:    dt=.25*sin(t)
+    for u=t to t+6.28 step .3+dt
+        q=sin(u):p=cos(u):'penwidth(2.5-p)
+        c=127*(1+p):color rgb(127*(1+q),c,255-c)
+        for v=t to t+6.28 step .3-dt
+            pset (HW+R*q*cos(v),HW+D*p+D*q*sin(v))
+        next v      
+    next u
+_limit 60
+t=t+.005
+wend
