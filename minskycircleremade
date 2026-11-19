@@ -1,0 +1,45 @@
+'adapted for basic fusion, minsk circle qbjs ...
+'Screen _NewImage(640, 480, 32)
+screen 9
+Cls:Widths=640:Heights=480
+Const circ_e = 1 / 16 'do this math once so the subroutine doesn't have to do so every itteration
+Dim x As Long, y As Long
+Dim centerx As Long, centery As Long
+Do
+    For c = 1 To 240 'let's draw 240 filled orbs
+        r = Int((Rnd * 40) + (Rnd * 40) + 10)
+        centerx = Int(Rnd * Widths)
+        centery = Int(Rnd * Heights)
+        kr = Int(1 + Rnd * 255): kg = Int(1 + Rnd * 2550): kb = Int(1 + Rnd * 255)
+        b = Int(2 + Rnd * 12) 'randomly do 2 to 12 circle fills to draw orbs as they look cooler than circles themselves
+        For bl = 1 To b
+            'color RGB(kr+1, kg+1, kb+1)
+            for i=0 to 2 * pi STEP 0.05
+                X = centerx + R * COS(i)
+                Y = centery + R * SIN(i)
+                pset (x, y),RGB(kr, kg, kb)
+                'circle centerx, centery, r,  RGB(kr, kg, kb)
+            next i
+'            _limit 60
+            kr = kr + 3: kg = kg + 4: kb = kb + 5
+            r = r * .9
+        Next bl
+        'input p$
+    Next c
+    Sleep
+Loop Until InKey$ = Chr$(27)
+End
+Sub Minsky_fcircle (cx, cy, r, fidelity, klr As _Unsigned Long)
+    'doesn't produce a perfect circle  but it produces a close enough circle
+    'fidelty of circle should be rated from 9 and up. a fidelty of 81 will generally look smooth.
+    '    the higher the fidelty the less chunky it looks but the longer it taes to draw
+    '    circ_e = 1 / 16 ' uncomment if you don't want to define circ_e as a constant in the main program
+    x = r
+    y = 0
+    For i = 0 To fidelity Step .4 'changing the step value of this loop will alter speed of drawing and quality of circle
+        x = x - y * circ_e
+        y = y + x * circ_e
+        Line (cx - x, cy - y)-(x + cx, y + cy), klr, BF 'drawing a whole bunch of boxes to get a circle
+        '  _limit 60
+    Next i
+End Sub 
