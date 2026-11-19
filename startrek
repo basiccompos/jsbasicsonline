@@ -1,0 +1,339 @@
+'QBJS ONLY START TREK
+sh = 700
+SW = sh * 1.6
+Randomize Timer
+'Screen _NewImage(SW, sh, 9) 'change to screen 9 for older versions of qb/qbasic
+Screen 9
+_ControlChr Off
+'_FullScreen     'chmage if yuo want it in a window or not
+'player ship
+sd$ = "S1C15  U16 L95 M+7,17 M-9,15 R97 U14 U2 BR45 D7 M-1,7 M-2,6 M-2,6 M-3,5 M-3,4 G3 M-4,1 M-4,1 M-4,-1 M-4,-1 H3 M-3,-4 M-3,-5 M-2,-6 M-2,-6 M-1,-7 U7 U7 M+1,-7 M+2,-6 M+2,-6 M+3,-5 M+3,-4 E3 M+4,-1 M+4,-1 M+4,1"
+sd$ = sd$ + " M+4,1 F3 M+3,4 M+3,5 M+2,6 M+2,6 M+1,7 D7 BM-93,-16 R9 U24 L9 D24 BD32 R10 D24 L10 U24 BM-32,-72 R63 D16 L63 U16 BD96 R64 D15 L64 U15 BM+115,-40 D2 M-1,2 D G2 G M-1,2 L2 M-2,1 L2 L2 M-2,-1 L H2 H H2 U M-1,-2 U2 U2"
+sd$ = sd$ + " M+1,-2 U2 M+2,-1 E M+1,-2 R2 M+2,-1 R2 R2 M+2,1 R2 M+1,2 F M+2,1 D2 M+1,2 D2"
+'kremulan ship
+KDv$ = "C14 U8 L32 D16 R32 U8 BU8 D15 M+32,-3 U8 M-32,-4 BM+32,-2 R5 D20 L5 U20 BM-30,2 L34 M-6,-23 M+30,1 M+8,22 R2 BM-34,16 M-8,24 M+31,-2 M+9,-22 L32 BM-17,-48 R49 D10 L49 U10 BM+1,70 R48 D10 L48 U10"
+Dim starx(1 To 40), stary(1 To 40), starf$(1 To 40)
+Dim pbank(1 To 3)
+tcount = 0
+Dim tx(tcount), ty(tcount), tarm(tcount)
+energy = 100000: shield = 0: hullmax = 1000: impulse = 1: ammo = 10: a = 0
+hull = hullmax
+kenergy = 20000: kammo = 4: ptarm = 0: ptx = -1: pty = -1
+ka = 90
+SX = 200: SY = 200
+pbank(1) = 1: pbank(2) = 0: pbank(3) = 0
+KX = 700: KY = 600: kd = 1
+flag$ = "GAME OVER"
+xdif = Abs(SX - KX): ydif = Abs(SY - KY): dis = Sqr((xdif * xdif) + (ydif * ydif))
+For s = 1 To 40
+    starx(s) = (Int(Rnd * _Width))
+    stary(s) = (Int(Rnd * _Height))
+    Select Case Int(Rnd * 20)
+        Case 1, 2, 5
+            starf$(s) = "."
+        Case 3, 4
+            starf$(s) = Chr$(15) 'will not work in older veersions
+        Case 6
+            starf$(s) = Chr$(7) 'will not work in older veersions
+        Case Else
+            starf$(s) = "*"
+    End Select
+Next s
+DO 'main loop
+    _Limit 20 'chnage as you wish 20 works for me
+    Cls
+    'draw starfield
+    For s = 1 To 40: _PrintString (starx(s), stary(s)), starf$(s): Next s
+    D = impulse * 2
+    SX = SX + D * Sin(0.01745329 * (90 + a)): SY = SY + D * Cos(0.01745329 * (90 + a))
+    SHX = SX - 9 * Sin(0.01745329 * (90 + a)): ShY = SY - 4 * Cos(0.01745329 * (90 + a))
+    SpX = SX + 9 * Sin(0.01745329 * (90 + a)): SpY = SY - 2 * Cos(0.01745329 * (90 + a))
+    KX = KX + kd * Sin(0.01745329 * (90 + ka)): KY = KY + kd * Cos(0.01745329 * (90 + ka))
+    theta = ((180 / _Pi) * Atn((KY - SY) / (KX - SX))) + a
+    Locate 3, 3
+    Print theta
+    'wrap around for player ship
+    If SX > _Width + 10 Then
+    SX = -5: If SX < -10 Then SX = _Width + 5
+    end if
+    If SY < -10 Then
+    SY = _Height + 5: If SY > _Height + 10 Then SY = -5
+    end if
+    For t = 0 To tcount 'move photo torpedos
+        If tarm(t) > 0 Then
+            tx(t) = (tx(t) + KX) / 2
+            ty(t) = (ty(t) + KY) / 2
+        End If
+    Next t
+    'wrap around for kremulan ship
+    If KX > _Width + 10 Then
+        KX = -5: ka = ka - Rnd * 20 + Rnd * 20
+    End If
+    If KX < -10 Then
+        KX = _Width + 5: ka = ka - Rnd * 20 + Rnd * 20
+    End If
+    If KY < -10 Then
+        KY = _Height + 5: ka = ka - Rnd * 20 + Rnd * 20
+    End If
+    If KY > _Height + 10 Then
+        KY = -5: ka = ka - Rnd * 20 + Rnd * 20
+    End If
+    ktheta = ((180 / _Pi) * Atn((SY - KY) / (SX - KX))) + a 'attempt to find angle between vessels and account for heading, something not right yet
+    'input
+    kk$ = InKey$
+    If kk$ = "" Then _KeyClear 'keeps the buffer from getting overloaded
+    Select Case kk$
+        Case "A", "a" 'turn left
+            If energy > 1 Then
+                energy = energy - (2 * Sqr(impulse))
+                a = a + 6
+                If a > 180 Then a = a - 360
+            End If
+        Case "D", "d" 'turn right
+            If energy > 1 Then
+                a = a - 6
+                energy = energy - (2 * Sqr(impulse))
+                If a < -180 Then a = a + 360
+            End If
+        Case "w", "W" 'increase speed
+            If energy > 100 Then
+                impulse = impulse + .05
+                If impulse > 10 Then impulse = 10
+                If impulse = 0 Then impluse = 0.5
+                energy = energy - (4 * Sqr(impulse))
+            End If
+        Case "s", "S" 'decrease speed
+            If energy > 100 Then
+                impulse = impulse * .9
+                If impulse < .1 Then impulse = 0
+                energy = energy - (4 * Sqr(impulse))
+            End If
+        Case "r", "R" 'raise shields
+            If energy > 1000 Then
+                shield = shield + 50
+                energy = energy - 50
+            End If
+        Case "q", "Q" 'drop shields
+            energy = energy + shield / 2
+            shield = 0
+        Case "t", "T" 'fire torpedo   NOTE: may not fire a torpedo if shields are raised
+            If dis < _Width / 3 And shield < 1 And Abs(theta) < 45.1 Then
+                If energy > 5 And ammo > 0 Then
+                    ammo = ammo - 1
+                    energy = energy - 5
+                    tcount = tcount + 1
+                    ReDim _Preserve tx(tcount)
+                    ReDim _Preserve ty(tcount)
+                    ReDim _Preserve tarm(tcount)
+                    tx(tcount) = SX
+                    ty(tcount) = SY
+                    tarm(tcount) = 10
+                End If
+            End If
+        Case "1", "!" 'charge phaser bank 1
+            If energy > 250 Then
+                If pbank(1) < 3 Then pbank(1) = pbank(1) + 1
+                energy = energy - 100
+            End If
+        Case "2", "@" ' charge phaser bank 2
+            If energy > 250 Then
+                If pbank(2) < 3 Then pbank(2) = pbank(2) + 1
+                energy = energy - 100
+            End If
+        Case "3", "#" ' charge phaser bank 3
+            If energy > 350 Then 'phaser bank 3 is offline if energy reserve is 350 or less
+                If pbank(3) < 5 Then pbank(3) = pbank(3) + 1
+                energy = energy - 115
+            End If
+        Case "P", "p" 'fire all phasers
+            If energy > 5 And dis <= 350 And Abs(theta) < 120.1 Then
+                For p = 1 To 3
+                    If pbank(p) > 0 Then
+                        energy = energy - 1
+                        DR = 50 * pbank(p): If p = 3 Then DR = 55 * pbank(p)
+                        pbank(p) = pbank(p) - 1
+                        kenergy = kenergy - (Int(25 + Rnd * DR) + (400 - dis) \ 2)
+                        For z = 1 To 3
+                            Line (SpX, SpY + p * 2 - 4)-(KX + Rnd * 4 - Rnd * 4, KY + Rnd * 4 - Rnd * 4), Int(10 + Rnd * 6)
+                        Next z
+                    End If
+                Next p
+            End If
+        Case "J", "j" 'jump drive
+            If energy > 1000 Then
+                energy = energy - 1000
+                SX = Int(Rnd * _Width): SY = Int(Rnd * _Height)
+                shield = shield * .5
+            End If
+    End Select
+    Rem kremulan logic
+    Select Case Int(Rnd * 10)
+        Case 1
+            If SX < KX Then ka = ka + 6
+        Case 2
+            If SX > KX Then ka = ka - 6
+        Case 3
+            If SY < KY Then ka = ka - 6
+        Case 4
+            If SyX > KY Then ka = ka + 6
+        Case 5
+            kd = kd + .1
+        Case 6
+            If kd > 0 Then kd = kd - .1
+        Case 7
+            If dis < _Height / 3.5 And Abs(ktheta) < 151 Then
+                KfX = KX + 10 * Sin(0.01745329 * (90 + ka))
+                Kfy = KY + 0 * Cos(0.01745329 * (90 + ka))
+                Line (KfX, Kfy)-(SX, SY)
+                For xx = -2 To 2 Step .5
+                    Line (KfX, Kfy)-(SX + xx, SY), Int(1 + Rnd * 14)
+                Next xx
+                dmg = Int(50 + Rnd * (3 * (250 - dis)))
+                If dmg <= shield Then
+                    shield = shield - dmg
+                Else
+                    dmg = dmg - shield
+                    shield = 0
+                    hull = hull - (Sqr(dmg) * (1 + Rnd * 4))
+                    If Rnd * 100 < hull / 10000 Then
+                        energy = energy - dmg
+                    End If
+                End If
+            End If
+        Case 8
+            If dis < _Width / 2.5 And Abs(ktheta) < 71 Then 'possibly launch plasma torpedo
+                If kenergy > 1500 And kammo > 0 And ptarm = 0 Then
+                    If Rnd * 30 <= kammo Then
+                        kenergy = kenergy - 1500
+                        kammo = kammo - 1
+                        ptarm = 20
+                        ptx = KX: pty = KY
+                    End If
+                End If
+            End If
+    End Select
+    PSet (SX, SY), 0
+    Draw "TA" + Str$(a) + sd$
+    If shield > 0 Then Circle (SHX, ShY), 36, 12
+    PSet (KX, KY), 0
+    Draw "TA" + Str$(ka) + KDv$
+   ' print "lmkm";KDv$',sd$
+    _PrintString (KX, KY + 20), Str$(kenergy)
+    For t = 0 To tcount 'do the photon torpedoes
+        If tarm(t) > 0 Then
+            Circle (tx(t), ty(t)), 4, 30
+            tarm(t) = tarm(t) - 1
+            If Abs(tx(t) - KX) < 21 Then
+                If Abs(ty(t) - KY) < 21 Then
+                    tarm(t) = 0
+                    kenergy = kenergy - ((500 - dis) + Int(1 + Rnd * []) * 500)
+                End If
+            End If
+        End If
+    Next t
+    If ptarm > 0 Then 'if the plasma torpedo is armed do it's thing
+        txdif = Abs(SX - ptx)
+        tydif = Abs(SY - pty)
+        If txdif = 0 Or tydif = 0 Then
+            Select Case txdif
+                Case 0
+                    tdis = Sqr(tydif * tydif)
+                Case Else
+                    tdis = Sqr(txdif * txdif)
+            End Select
+        Else
+            tdis = Sqr((txdif * txdif) + (tydif * tydif))
+        End If
+        If ptarm <> 20 Then
+            ptx = (ptx * 4 + SX) / 5
+            pty = (pty * 4 + SY) / 5
+        End If
+        ptarm = ptarm - 1
+        For pr = 1 To Int(2 + Rnd * 5)
+            Circle (ptx, pty), pr * 4, Int(10 + Rnd * 6)
+        Next pr
+        If tdis <= 10 Then
+            If shield > 75 Then
+                shield = shield * .2
+                ptarm = 0
+            Else
+                shield = 0
+                tdmg = Int(200 + Rnd * (ptarm * 200))
+                hull = hull - tdmg
+                If hull < 1 Then hull = 0
+                ptarm = 0
+            End If
+        End If
+    End If
+    If hull < 1 Then
+        _AutoDisplay
+        For brep = 1 To 18
+            _Limit 18
+            For D = 10 To 700 Step 10
+                aa = Int(Rnd * 360)
+                SX2 = SX + D * Sin(0.01745329 * aa)
+                SY2 = SY + D * Cos(0.01745329 * aa)
+                Line (SX, SY)-(SX2, SY2), Int(Rnd * 16)
+            Next D
+            kk$ = Chr$(27)
+            flag$ = "YOU LOST"
+        Next brep
+    End If
+    If kenergy < 1 Then
+        _AutoDisplay
+        For brep = 1 To 12
+            _Limit 18
+            For D = 10 To 200 Step 10
+                aa = Int(Rnd * 360)
+                SX2 = KX + D * Sin(0.01745329 * aa)
+                SY2 = KY + D * Cos(0.01745329 * aa)
+                Line (KX, KY)-(SX2, SY2), Int(Rnd * 16)
+            Next D
+            kk$ = Chr$(27)
+            flag$ = "YOU WON"
+        Next brep
+    End If
+    Locate 1, 1
+    xdif = Abs(SX - KX)
+    ydif = Abs(SY - KY)
+    If xdif = 0 Or ydif = 0 Then
+        Select Case xdif
+            Case 0
+                dis = Sqr(ydif * ydif)
+            Case Else
+                dis = Sqr(xdif * xdif)
+        End Select
+    Else
+        dis = Sqr((xdif * xdif) + (ydif * ydif))
+    End If
+    Print dis
+    Locate 1, 10: Print "Energy :"; energy
+    Locate 1, 25: Print "Shield :"; shield
+    Locate 1, 40: Print "Hull :"; (hull / hullmax) * 100; "%"
+    Locate 1, 55: Print "T.Ammo:"; ammo
+    Locate 2, 1: Print "Phaser Banks:";
+    For p = 1 To 3
+        Print "  ("; p; "): ";
+        Select Case p
+            Case 1, 2
+                Select Case pbank(p)
+                    Case 1: pp$ = "#.."
+                    Case 2: pp$ = "##."
+                    Case 3: pp$ = "###"
+                    Case Else: pp$ = "..."
+                End Select
+            Case 3
+                Select Case pbank(p)
+                    Case 1: pp$ = "#...."
+                    Case 2: pp$ = "##..."
+                    Case 3: pp$ = "###.."
+                    Case 4: pp$ = "####."
+                    Case 5: pp$ = "#####"
+                    Case Else: pp$ = "....."
+                End Select
+        End Select
+        Print pp$;
+    Next p
+    Print " "
+    _Display
+Loop Until kk$ = Chr$(27)
